@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Player — Privacy Policy</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1c1c1e; background: #ffffff; }
+  @media (prefers-color-scheme: dark) { body { color: #f2f2f7; background: #000000; } }
+  main { max-width: 46em; margin: 0 auto; padding: 3rem 1.5rem; }
+  h1 { font-size: 1.9rem; line-height: 1.25; margin-bottom: .5rem; }
+  h2 { font-size: 1.3rem; margin-top: 2rem; }
+  h3 { font-size: 1.1rem; margin-top: 1.5rem; }
+  a { color: #0a66c2; }
+  @media (prefers-color-scheme: dark) { a { color: #4495f2; } }
+  ul { padding-left: 1.4rem; }
+  li { margin: .4rem 0; }
+  .meta { color: #6e6e73; font-size: .95rem; }
+  @media (prefers-color-scheme: dark) { .meta { color: #98989d; } }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e5e5ea; font-size: .9rem; color: #6e6e73; }
+  @media (prefers-color-scheme: dark) { footer { border-color: #38383a; color: #98989d; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Player Privacy Policy</h1>
+  <p class="meta">Effective date: 2026-11-17</p>
+
+  <p>This privacy policy applies to the Player app (hereby referred to as "Application") for Meta Quest devices that was created by Savva (hereby referred to as "Service Provider") as a Free service. This service is intended for use "AS IS".</p>
+
+  <h2>Information Collection and Use</h2>
+  <p>The Application has <strong>no accounts, no ads, and no analytics</strong>. It does not collect, sell, or share any personal information. All of your data is stored <strong>locally on your device only</strong> and never transmitted to the Service Provider or any third party. In particular:</p>
+  <ul>
+    <li>Your local video library (the videos MediaStore exposes on the device), your recents list, and the playback position of each video so playback can resume</li>
+    <li>Your player settings — playback speed, subtitle settings (format, size, position, delay, styling), screen/zoom mode, and other preferences</li>
+    <li>Your network source configurations — the server addresses, share paths, and credentials you choose to enter for SMB, DLNA, WebDAV, FTP, SFTP, or Plex</li>
+  </ul>
+  <p>The Application does not gather precise information about the location of your device, does not access your contacts, camera, or microphone, and does not use advertising identifiers. The Application itself hosts no content and has no servers of its own.</p>
+
+  <h3>Local files and USB storage</h3>
+  <p>Local videos are discovered through Android MediaStore, and folders on USB or external media are accessed only through the Android Storage Access Framework (SAF) using the persistable folder permission you grant. The Application receives access only to the folders you pick, and never uploads your videos, subtitles, or file names anywhere. It does not request <code>MANAGE_EXTERNAL_STORAGE</code>.</p>
+
+  <h3>Subtitles</h3>
+  <p>Subtitle files (SRT, VTT and ASS), whether embedded in your media or loaded as separate local files, are parsed and rendered entirely on your device. No subtitle text or file is sent to any service.</p>
+
+  <h3>Network sources</h3>
+  <p><strong>Local content means zero network traffic.</strong> The Application never contacts a network on its own. Outbound connections happen only when you explicitly add and use a network source:</p>
+  <ul>
+    <li><strong>SMB</strong> (jcifs-ng), <strong>DLNA</strong> (JUPnP), <strong>WebDAV</strong> (okhttp), <strong>FTP</strong> (commons-net), <strong>SFTP</strong> (JSch), and <strong>Plex</strong> (HTTP API) connect only to the server you configure.</li>
+    <li>The address, path, and any username/password you enter are sent only to that server as part of the connection, and are kept on your device so the source can reconnect. The Service Provider never receives, sees, or stores these credentials.</li>
+    <li>The terms and privacy practices of the server or service you connect to apply to that service. You are not required to configure any network source.</li>
+  </ul>
+
+  <h3>Optional Meta telemetry</h3>
+  <p>The Application uses the Meta Spatial SDK. Meta may offer <strong>optional, opt-in</strong> diagnostics/telemetry for Meta SDKs; this is governed by Meta's own privacy policy and terms (see <a href="https://www.meta.com/legal/privacy-policy/">Meta Privacy Policy</a>). Telemetry is disabled unless you opt in through the system or SDK prompts, and opting in is not required to use the Application. The Service Provider does not receive, access, or review any telemetry data.</p>
+
+  <h3>Third-party libraries</h3>
+  <p>The Application bundles open-source libraries — Media3/ExoPlayer with FFmpeg decoder extensions, jcifs-ng, JUPnP, okhttp, commons-net and JSch. These are code included in the app, not services that collect data about you. They contact only the servers you explicitly configure.</p>
+
+  <h3>Permissions</h3>
+  <p>The Application requests the <strong>Internet</strong> permission for the optional network sources, and on Android 13+ the <strong>READ_MEDIA_VIDEO</strong> permission to list your local videos. Folder access on USB/external media is granted per folder through SAF. It requests no other runtime permissions.</p>
+
+  <h2>Third Party Access</h2>
+  <p>The Service Provider does <strong>not</strong> share, sell, or transmit any of your information to third parties. The only outbound requests the Application makes are to the network sources you explicitly configure, and the optional Meta SDK telemetry described above (handled entirely by Meta, and only if you opt in).</p>
+  <p>The Service Provider may disclose information:</p>
+  <ul>
+    <li>as required by law, such as to comply with a subpoena, or similar legal process;</li>
+    <li>when they believe in good faith that disclosure is necessary to protect their rights, protect your safety or the safety of others, investigate fraud, or respond to a government request.</li>
+  </ul>
+
+  <h2>Opt-Out Rights</h2>
+  <p>You can stop all collection of information by the Application easily by uninstalling it. You may use the standard uninstall processes as may be available as part of your device or via the application marketplace or network. Uninstalling the Application permanently removes your library index, recents, resume positions, settings, and saved source configurations from the device. You can avoid all network use by simply not configuring a network source. If you opted in to Meta SDK telemetry, you can disable it in the Meta system settings; the Service Provider does not control or receive that data. You may also revoke any SAF folder permission at any time in Android settings.</p>
+
+  <h2>Data Retention Policy</h2>
+  <p>All Application data is stored <strong>only on your device</strong> and is retained only as long as the Application is installed. The Service Provider has no server-side copies of your data and cannot access your data. If you delete the Application, your local data is deleted with it.</p>
+
+  <h2>Children</h2>
+  <p>The Service Provider does not use the Application to knowingly solicit data from or market to children under the age of 13.</p>
+  <p>The Application does not address anyone under the age of 13. The Service Provider does not knowingly collect personally identifiable information from children under 13 years of age. Because the Application does not collect any personal information, the Service Provider has no such data to delete; if you believe a child has used the Application, please contact the Service Provider at <a href="mailto:oisurka@gmail.com">oisurka@gmail.com</a> so that they can take any necessary actions.</p>
+
+  <h2>Security</h2>
+  <p>The Service Provider is concerned about safeguarding the confidentiality of your information. Because the Application stores your data only on your device and transmits nothing off-device except to the network sources you explicitly configure (and optional, opt-in Meta SDK telemetry handled by Meta), there is no Service Provider-side storage to secure. Credentials you save for a network source stay on your device. The Service Provider provides physical, electronic, and procedural safeguards for any information they process or maintain.</p>
+
+  <h2>Changes</h2>
+  <p>This Privacy Policy may be updated from time to time for any reason. The Service Provider will notify you of any changes to the Privacy Policy by updating this page with the new Privacy Policy. You are advised to consult this Privacy Policy regularly for any changes, as continued use is deemed approval of all changes.</p>
+  <p>This privacy policy is effective as of 2026-11-17.</p>
+
+  <h2>Your Consent</h2>
+  <p>By using the Application, you are consenting to the processing of your information as set forth in this Privacy Policy now and as amended by us.</p>
+
+  <h2>Contact Us</h2>
+  <p>If you have any questions regarding privacy while using the Application, or have questions about the practices, please contact the Service Provider via email at <a href="mailto:oisurka@gmail.com">oisurka@gmail.com</a>.</p>
+
+  <p class="meta"><em>This document is provided as a template for developer use and does not constitute legal advice.</em></p>
+
+  <footer>
+    <p><a href="index.html">← Player legal documents</a> · <a href="terms.html">Terms of Service</a></p>
+  </footer>
+</main>
+</body>
+</html>

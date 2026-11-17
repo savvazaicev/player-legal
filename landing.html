@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Player — a 2D video player for Meta Quest</title>
+<meta name="description" content="Player is a fast, clean 2D video player for Meta Quest: all formats via Media3 + FFmpeg, subtitles, resume, and local or network sources — free, private, no ads.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --text: #f2f2f7;
+    --muted: rgba(242, 242, 247, .62);
+    --faint: rgba(242, 242, 247, .38);
+    --panel: linear-gradient(160deg, #181d24 0%, #0f1216 100%);
+    --panel-border: rgba(255, 255, 255, .08);
+    --card: rgba(255, 255, 255, .045);
+    --indigo: #5c7cfa;
+    --coral: #ff6b57;
+    --green: #30d158;
+    --amber: #ffb020;
+    --sky: #38bdf8;
+    --violet: #a78bfa;
+    --neutral: #9ba1a6;
+    --radius: 26px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text);
+    background:
+      radial-gradient(60rem 30rem at 85% -5%, rgba(92, 124, 250, .18), transparent 60%),
+      radial-gradient(50rem 26rem at 8% 12%, rgba(56, 189, 248, .10), transparent 60%),
+      var(--bg);
+  }
+  .wrap { max-width: 72rem; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ---------- nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(14px);
+    background: rgba(0, 0, 0, .55);
+    border-bottom: 1px solid rgba(255, 255, 255, .06);
+  }
+  .nav { display: flex; align-items: center; gap: 1.5rem; height: 60px; }
+  .logo { display: flex; align-items: center; gap: .55rem; font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; color: var(--text); text-decoration: none; }
+  .logo .dot {
+    width: 22px; height: 22px; border-radius: 7px;
+    background: conic-gradient(from 210deg, var(--indigo), var(--sky), var(--green), var(--amber), var(--coral), var(--indigo));
+  }
+  .nav-links { display: flex; gap: 1.2rem; margin-left: auto; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: .92rem; font-weight: 500; }
+  .nav-links a:hover { color: var(--text); }
+  .btn {
+    display: inline-block; padding: .55rem 1.1rem; border-radius: 999px;
+    background: var(--indigo); color: #fff; font-weight: 600; font-size: .92rem;
+    text-decoration: none; border: 0; cursor: pointer;
+    transition: transform .12s ease, filter .12s ease;
+  }
+  .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn.ghost { background: transparent; border: 1px solid rgba(255, 255, 255, .2); color: var(--text); }
+  .btn.ghost:hover { background: rgba(255, 255, 255, .06); }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 4.5rem 0 3rem; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 2.5rem; align-items: center; }
+  .eyebrow { font-size: .82rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--sky); margin-bottom: .8rem; }
+  h1 { font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1.08; font-weight: 800; letter-spacing: -.02em; margin: 0 0 1rem; }
+  h1 em { font-style: normal; background: linear-gradient(90deg, var(--indigo), var(--sky)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { font-size: 1.13rem; color: var(--muted); max-width: 30rem; margin: 0 0 1.4rem; }
+  .badges { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.6rem; }
+  .badge {
+    font-size: .8rem; font-weight: 600; color: var(--muted);
+    border: 1px solid rgba(255, 255, 255, .14); border-radius: 999px; padding: .18rem .7rem;
+  }
+  .cta-row { display: flex; gap: .7rem; flex-wrap: wrap; }
+
+  /* ---------- panels ---------- */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .55);
+    overflow: hidden;
+  }
+  .ph { display: flex; align-items: center; gap: .55rem; padding: .7rem 1rem .4rem; }
+  .chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: color-mix(in srgb, var(--ac) 22%, transparent);
+    color: var(--ac); flex: none;
+  }
+  .chip .ic { width: 15px; height: 15px; }
+  .pt { font-size: 1.05rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .picons { margin-left: auto; display: flex; gap: .15rem; color: var(--faint); }
+  .picons .ic { width: 17px; height: 17px; }
+  .pbody { padding: .4rem 1.2rem 1.2rem; }
+  .accentbar { width: 34%; height: 4px; border-radius: 999px; background: var(--ac); margin: .8rem auto 0; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .big { font-weight: 600; letter-spacing: -.01em; }
+  .hint { font-size: .78rem; color: var(--faint); text-align: center; }
+
+  /* hero cluster */
+  .cluster { position: relative; min-height: 480px; }
+  .cluster .panel { position: absolute; width: min(310px, 80%); }
+  .c-player { top: 0; left: 0; transform: rotate(-1.6deg); z-index: 3; width: min(340px, 90%) !important; }
+  .c-subs { top: 150px; right: -3%; transform: rotate(1.8deg); z-index: 5; width: min(285px, 76%) !important; }
+  .c-sources { bottom: -10px; left: 13%; transform: rotate(-.7deg); z-index: 4; }
+
+  .video-stage {
+    position: relative; margin: .2rem .8rem 1rem; aspect-ratio: 16/9; border-radius: 14px;
+    background: radial-gradient(120% 120% at 30% 20%, #2a3550, #0a0d14 72%);
+    overflow: hidden; display: flex; align-items: center; justify-content: center;
+  }
+  .play-big {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .25);
+    display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+  }
+  .play-big .ic { width: 22px; height: 22px; color: #fff; }
+  .subs-line { position: absolute; bottom: 38px; left: 0; right: 0; text-align: center; font-size: .72rem; color: #fff; text-shadow: 0 1px 3px #000; }
+  .vbar { position: absolute; left: 10px; right: 10px; bottom: 22px; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, .28); }
+  .vbar i { display: block; width: 37%; height: 100%; border-radius: 999px; background: var(--indigo); animation: progress 1.4s ease-out both; }
+  @keyframes progress { from { width: 0; } to { width: 37%; } }
+  .vtimes { position: absolute; left: 10px; right: 10px; bottom: 6px; display: flex; justify-content: space-between; font-size: .6rem; color: rgba(255, 255, 255, .8); font-variant-numeric: tabular-nums; }
+
+  .sub-band { background: rgba(0, 0, 0, .35); border-radius: 10px; padding: .55rem .4rem; text-align: center; font-size: .8rem; margin: .4rem 0 .2rem; }
+  .src { display: flex; align-items: center; gap: .55rem; font-size: .86rem; padding: .26rem 0; }
+  .src .ic { width: 15px; height: 15px; color: var(--ac); }
+  .src .on { margin-left: auto; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .src .off { margin-left: auto; font-size: .66rem; color: var(--faint); }
+
+  /* ---------- sections ---------- */
+  section { padding: 4rem 0; }
+  h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 .5rem; }
+  .sub { color: var(--muted); max-width: 40rem; margin: 0 0 2.2rem; }
+  .group-label { font-size: .82rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin: 2.2rem 0 .9rem; display: flex; align-items: center; gap: .5rem; }
+  .group-label::after { content: ""; flex: 1; height: 1px; background: rgba(255, 255, 255, .08); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 1rem; }
+  .grid .panel { box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+  .grid .pbody { padding: .3rem 1rem 1rem; min-height: 128px; display: flex; flex-direction: column; justify-content: center; }
+  .mini { text-align: center; }
+  .mini .m-big { font-size: 1.55rem; font-weight: 600; }
+  .mini .m-sub { font-size: .78rem; color: var(--muted); margin-top: .3rem; }
+  .mini .m-accent { font-size: 1.15rem; font-weight: 600; color: var(--ac); }
+  .rows { text-align: left; }
+  .row { display: flex; justify-content: space-between; gap: .6rem; font-size: .82rem; padding: .28rem 0; }
+  .row .l { color: var(--muted); }
+  .row .r { font-weight: 600; color: var(--ac); }
+  .row .r.dim { color: var(--faint); font-weight: 500; }
+
+  /* source cards */
+  .fgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; }
+  .fcard { background: var(--card); border: 1px solid rgba(255, 255, 255, .07); border-radius: 18px; padding: 1.3rem; }
+  .fcard .ficon {
+    width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--ac) 18%, transparent); color: var(--ac); margin-bottom: .8rem;
+  }
+  .fcard .ficon .ic { width: 20px; height: 20px; }
+  .fcard h3 { margin: 0 0 .3rem; font-size: 1rem; font-weight: 700; }
+  .fcard p { margin: 0; font-size: .88rem; color: var(--muted); }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .step { position: relative; padding: 1.4rem; border: 1px solid rgba(255, 255, 255, .08); border-radius: 18px; background: var(--card); }
+  .step .n { font-size: .8rem; font-weight: 800; letter-spacing: .1em; color: var(--sky); margin-bottom: .5rem; display: block; }
+  .step h3 { margin: 0 0 .3rem; font-size: 1.02rem; }
+  .step p { margin: 0; font-size: .88rem; color: var(--muted); }
+
+  /* privacy */
+  .priv { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+  .priv .shield {
+    width: 54px; height: 54px; border-radius: 18px; flex: none;
+    display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green);
+  }
+  .priv .shield .ic { width: 28px; height: 28px; }
+  .priv div { max-width: 42rem; color: var(--muted); font-size: .98rem; }
+  .priv a { color: var(--sky); }
+
+  /* footer */
+  footer { border-top: 1px solid rgba(255, 255, 255, .07); padding: 2rem 0 2.5rem; margin-top: 2rem; }
+  .foot { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: .88rem; color: var(--muted); }
+  .foot a { color: var(--muted); text-decoration: none; }
+  .foot a:hover { color: var(--text); }
+
+  .ic { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .cluster { min-height: 0; display: grid; gap: 1rem; margin-top: .5rem; }
+    .cluster .panel { position: static; transform: none !important; width: 100% !important; }
+    .steps { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .vbar i { animation: none; } }
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5l10.5 6.5L8 18.5v-13z"/></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 9.5h4M3 14.5h4M17 9.5h4M17 14.5h4"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="12" height="12" rx="2"/><path d="M15 10l6-3v10l-6-3z"/></symbol>
+  <symbol id="i-subs" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 14h4M14 14h3M7 10h2M12 10h5"/></symbol>
+  <symbol id="i-speed" viewBox="0 0 24 24"><path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5M4 17h2M18 17h2"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></symbol>
+  <symbol id="i-drive" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M14 10h4M14 14h4"/></symbol>
+  <symbol id="i-resume" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 5v4h4"/><path d="M12 8v4l3 2"/></symbol>
+  <symbol id="i-gesture" viewBox="0 0 24 24"><path d="M9 11V5a1.5 1.5 0 0 1 3 0v5M12 10V7a1.5 1.5 0 0 1 3 0v4M15 11V9a1.5 1.5 0 0 1 3 0v5c0 4-2.5 6-6 6s-6-2-6-5v-4a1.5 1.5 0 0 1 3 0"/></symbol>
+  <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M10 14h4M18 14h.01"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.6c0 4.8-3.2 7.9-7.5 9.4-4.3-1.5-7.5-4.6-7.5-9.4V6L12 3z"/><path d="M9 12l2.2 2.2L15.5 9.7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-windows" viewBox="0 0 24 24"><rect x="7.5" y="3" width="13.5" height="13.5" rx="2.5"/><path d="M3 8.5V19a2.5 2.5 0 0 0 2.5 2.5H16"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+  <symbol id="i-feather" viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H10L9 22l8.5-11.5H12L13 2z"/></symbol>
+</svg>
+
+<nav>
+  <div class="wrap nav">
+    <a class="logo" href="#"><span class="dot"></span>Player</a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#sources">Sources</a>
+      <a href="#subtitles">Subtitles</a>
+      <a href="#privacy">Privacy</a>
+    </div>
+    <a class="btn" href="#features">See the features</a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">For Meta Quest · Horizon OS</p>
+      <h1>Your videos, <em>beautifully played</em></h1>
+      <p class="lede">A fast, clean 2D video player for Quest. Play local files or stream from your own network — every format, real subtitles, resume where you left off. No ads, no accounts, no tracking.</p>
+      <div class="badges">
+        <span class="badge">Media3 + FFmpeg</span>
+        <span class="badge">All formats</span>
+        <span class="badge">Subtitles</span>
+        <span class="badge">Network sources</span>
+        <span class="badge">Free</span>
+        <span class="badge">No ads</span>
+        <span class="badge">No accounts</span>
+        <span class="badge">Offline-first</span>
+      </div>
+      <div class="cta-row">
+        <a class="btn" href="#features">Explore features</a>
+        <a class="btn ghost" href="privacy.html">Privacy policy</a>
+      </div>
+    </div>
+
+    <div class="cluster">
+      <div class="panel c-player" style="--ac: var(--indigo)">
+        <div class="ph">
+          <span class="chip"><svg class="ic"><use href="#i-play"/></svg></span>
+          <span class="pt">Movie.mkv · 1080p</span>
+          <span class="picons"><svg class="ic"><use href="#i-gear"/></svg><svg class="ic"><use href="#i-x"/></svg></span>
+        </div>
+        <div class="video-stage">
+          <div class="play-big"><svg class="ic"><use href="#i-play"/></svg></div>
+          <div class="subs-line">— I thought you'd never ask.</div>
+          <div class="vbar"><i></i></div>
+          <div class="vtimes"><span>24:18</span><span>1:52:04</span></div>
+        </div>
+      </div>
+
+      <div class="panel c-subs" style="--ac: var(--amber)">
+        <div class="ph">
+          <span class="chip"><svg class="ic"><use href="#i-subs"/></svg></span>
+          <span class="pt">Subtitles</span>
+        </div>
+        <div class="pbody">
+          <div class="sub-band">— I thought you'd never ask.</div>
+          <div class="rows">
+            <div class="row"><span class="l">Format</span><span class="r">SRT · VTT · ASS</span></div>
+            <div class="row"><span class="l">Size / position</span><span class="r">Medium · Bottom</span></div>
+            <div class="row"><span class="l">Sync delay</span><span class="r">+0.5 s</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel c-sources" style="--ac: var(--green)">
+        <div class="ph">
+          <span class="chip"><svg class="ic"><use href="#i-server"/></svg></span>
+          <span class="pt">Sources</span>
+        </div>
+        <div class="pbody">
+          <div class="src"><svg class="ic"><use href="#i-folder"/></svg>Local library<span class="on"></span></div>
+          <div class="src"><svg class="ic"><use href="#i-drive"/></svg>USB drive (SAF)<span class="on"></span></div>
+          <div class="src"><svg class="ic"><use href="#i-server"/></svg>SMB share<span class="on"></span></div>
+          <div class="src"><svg class="ic"><use href="#i-pulse"/></svg>Plex<span class="off">configured</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ FEATURES ============ -->
+<section id="features">
+  <div class="wrap">
+    <h2>Everything you need to just press play</h2>
+    <p class="sub">A focused 2D app-mode player: no VR scene, no hand tracking, no bloat. Just reliable playback with the controls where you expect them.</p>
+
+    <div class="group-label" style="color: var(--indigo)">Playback</div>
+    <div class="grid">
+      <div class="panel" style="--ac: var(--indigo)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-film"/></svg></span><span class="pt">Formats</span></div>
+        <div class="pbody mini"><div class="m-accent" style="font-size:1rem">MKV · MP4 · AVI</div><div class="m-sub">TS · MOV · WebM · more</div></div>
+      </div>
+      <div class="panel" style="--ac: var(--sky)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-video"/></svg></span><span class="pt">Codecs</span></div>
+        <div class="pbody mini"><div class="m-accent" style="font-size:1rem">HEVC · AV1 · H.264</div><div class="m-sub">VP9 via FFmpeg decoders</div></div>
+      </div>
+      <div class="panel" style="--ac: var(--coral)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-speed"/></svg></span><span class="pt">Speed</span></div>
+        <div class="pbody mini"><div class="m-big tnum">0.25× – 4×</div><div class="accentbar"></div></div>
+      </div>
+      <div class="panel" style="--ac: var(--amber)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-monitor"/></svg></span><span class="pt">Screen modes</span></div>
+        <div class="pbody mini"><div class="m-accent" style="font-size:1rem">Fit · Fill · Zoom</div><div class="m-sub">crop and aspect control</div></div>
+      </div>
+      <div class="panel" style="--ac: var(--green)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-pulse"/></svg></span><span class="pt">Audio &amp; tracks</span></div>
+        <div class="pbody rows"><div class="row"><span class="l">Audio track</span><span class="r">select</span></div><div class="row"><span class="l">Volume</span><span class="r tnum">80%</span></div></div>
+      </div>
+      <div class="panel" style="--ac: var(--violet)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-feather"/></svg></span><span class="pt">Engine</span></div>
+        <div class="pbody mini"><div class="m-accent" style="font-size:1rem">Media3 / ExoPlayer</div><div class="m-sub">fast start, small footprint</div></div>
+      </div>
+    </div>
+
+    <div class="group-label" style="color: var(--amber)">Subtitles</div>
+    <div class="grid">
+      <div class="panel" style="--ac: var(--amber)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-subs"/></svg></span><span class="pt">Formats</span></div>
+        <div class="pbody mini"><div class="m-accent" style="font-size:1rem">SRT · VTT · ASS</div><div class="m-sub">embedded or external</div></div>
+      </div>
+      <div class="panel" style="--ac: var(--sky)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-monitor"/></svg></span><span class="pt">Position</span></div>
+        <div class="pbody mini"><div class="m-accent" style="font-size:1rem">Top · Bottom</div><div class="m-sub">move it where you want</div></div>
+      </div>
+      <div class="panel" style="--ac: var(--coral)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-clock"/></svg></span><span class="pt">Sync delay</span></div>
+        <div class="pbody mini"><div class="m-big tnum">± 0.0 s</div><div class="m-sub">nudge cues forward or back</div></div>
+      </div>
+      <div class="panel" style="--ac: var(--green)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-gear"/></svg></span><span class="pt">Styling</span></div>
+        <div class="pbody rows"><div class="row"><span class="l">Text size</span><span class="r">adjustable</span></div><div class="row"><span class="l">Color / outline</span><span class="r">custom</span></div></div>
+      </div>
+    </div>
+
+    <div class="group-label" style="color: var(--green)">Library &amp; controls</div>
+    <div class="grid">
+      <div class="panel" style="--ac: var(--green)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-resume"/></svg></span><span class="pt">Resume</span></div>
+        <div class="pbody mini"><div class="m-big tnum">Continue?</div><div class="m-sub">picks up at 24:18</div></div>
+      </div>
+      <div class="panel" style="--ac: var(--indigo)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-clock"/></svg></span><span class="pt">Recents</span></div>
+        <div class="pbody mini"><div class="m-accent" style="font-size:1rem">Recently played</div><div class="m-sub">jump back in fast</div></div>
+      </div>
+      <div class="panel" style="--ac: var(--sky)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-gesture"/></svg></span><span class="pt">Gestures</span></div>
+        <div class="pbody mini"><div class="m-accent" style="font-size:1rem">Swipe &amp; tap</div><div class="m-sub">seek, volume, brightness</div></div>
+      </div>
+      <div class="panel" style="--ac: var(--coral)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-keyboard"/></svg></span><span class="pt">Hotkeys</span></div>
+        <div class="pbody mini"><div class="m-accent" style="font-size:1rem">Keyboard ready</div><div class="m-sub">play, seek, subtitles</div></div>
+      </div>
+      <div class="panel" style="--ac: var(--amber)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-gear"/></svg></span><span class="pt">Popup menus</span></div>
+        <div class="pbody mini"><div class="m-accent" style="font-size:1rem">Quick settings</div><div class="m-sub">audio, subtitles, speed</div></div>
+      </div>
+      <div class="panel" style="--ac: var(--violet)">
+        <div class="ph"><span class="chip"><svg class="ic"><use href="#i-windows"/></svg></span><span class="pt">App mode</span></div>
+        <div class="pbody mini"><div class="m-accent" style="font-size:1rem">2D panel</div><div class="m-sub">native Horizon window</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SOURCES ============ -->
+<section id="sources" style="padding-top:0">
+  <div class="wrap">
+    <h2>Your library, wherever it lives</h2>
+    <p class="sub">Start with local files — zero network. When you want more, point the player at a source you control. Connections happen only when you explicitly configure them.</p>
+    <div class="fgrid">
+      <div class="fcard" style="--ac: var(--green)">
+        <div class="ficon"><svg class="ic"><use href="#i-folder"/></svg></div>
+        <h3>Local library</h3>
+        <p>Videos from MediaStore. Indexed on-device, sorted, and ready to resume.</p>
+      </div>
+      <div class="fcard" style="--ac: var(--sky)">
+        <div class="ficon"><svg class="ic"><use href="#i-drive"/></svg></div>
+        <h3>USB / external</h3>
+        <p>Pick a folder through Android SAF and play straight from a drive — no broad storage access.</p>
+      </div>
+      <div class="fcard" style="--ac: var(--indigo)">
+        <div class="ficon"><svg class="ic"><use href="#i-server"/></svg></div>
+        <h3>SMB</h3>
+        <p>Browse a Windows/Samba share on your network (jcifs-ng).</p>
+      </div>
+      <div class="fcard" style="--ac: var(--violet)">
+        <div class="ficon"><svg class="ic"><use href="#i-pulse"/></svg></div>
+        <h3>DLNA / UPnP</h3>
+        <p>Discover media servers on your LAN automatically (JUPnP).</p>
+      </div>
+      <div class="fcard" style="--ac: var(--amber)">
+        <div class="ficon"><svg class="ic"><use href="#i-feather"/></svg></div>
+        <h3>WebDAV</h3>
+        <p>Mount a WebDAV endpoint over HTTP(S) (okhttp).</p>
+      </div>
+      <div class="fcard" style="--ac: var(--coral)">
+        <div class="ficon"><svg class="ic"><use href="#i-server"/></svg></div>
+        <h3>FTP / SFTP</h3>
+        <p>Connect to FTP (commons-net) or secure SFTP (JSch) servers.</p>
+      </div>
+      <div class="fcard" style="--ac: var(--sky)">
+        <div class="ficon"><svg class="ic"><use href="#i-pulse"/></svg></div>
+        <h3>Plex</h3>
+        <p>Browse your Plex library through its HTTP API.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SUBTITLES ============ -->
+<section id="subtitles" style="padding-top:0">
+  <div class="wrap">
+    <h2>Subtitles that behave</h2>
+    <p class="sub">Load an SRT, VTT or ASS file next to your video, or use embedded tracks. Set the size, move it up or down, and nudge the timing until it lines up. No uploads — parsing and rendering happen on your headset.</p>
+    <div class="steps">
+      <div class="step">
+        <span class="n">01</span>
+        <h3>Load a track</h3>
+        <p>Pick an external subtitle file or use the one embedded in the video.</p>
+      </div>
+      <div class="step">
+        <span class="n">02</span>
+        <h3>Make it readable</h3>
+        <p>Adjust text size, colors and outline, and choose top or bottom placement.</p>
+      </div>
+      <div class="step">
+        <span class="n">03</span>
+        <h3>Sync it up</h3>
+        <p>If cues are early or late, apply a delay in half-second steps until it fits.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRIVACY ============ -->
+<section id="privacy" style="padding-top:0">
+  <div class="wrap">
+    <div class="priv">
+      <div class="shield"><svg class="ic"><use href="#i-shield"/></svg></div>
+      <div>
+        <h2 style="margin-bottom:.4rem">Local by default. Yours, always.</h2>
+        <p>No accounts, no ads, no analytics, no trackers. Local playback sends nothing over the network — your library, recents, resume positions, subtitles and settings stay on the headset. Network sources connect only to servers you configure, and credentials never leave your device. Read the full <a href="privacy.html">Privacy Policy</a> and <a href="terms.html">Terms of Service</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div>Player — a 2D video player for Meta Quest · Free · No ads · No accounts</div>
+    <div><a href="index.html">Legal</a> · <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Service</a></div>
+    <div>Contact: <a href="mailto:oisurka@gmail.com">oisurka@gmail.com</a></div>
+  </div>
+</footer>
+
+</body>
+</html>
